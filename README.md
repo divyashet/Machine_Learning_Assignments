@@ -14,7 +14,7 @@ Datasets used for analysis
 3)	Boston.cvs
 
 Algorithms Used
-1) Naïve Baiyes Classifier Model
+1) Naive Baiyes Classifier Model
 2) Linear Regression Model
 
 
