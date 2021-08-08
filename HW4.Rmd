@@ -1,0 +1,111 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+##In this homework, you need to implement a linear regression model and answer the followed questions.
+##1.	Load Boston.cvs data set. It records 14 variables for 506 neighborhoods around Boston
+##crim: per capita crime rate by town.
+##zn: proportion of residential land zoned for lots over 25,000 sq.ft.
+##indus: proportion of non-retail business acres per town.
+##chas: Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+##nox: nitrogen oxides concentration (parts per 10 million).
+##rm: average number of rooms per dwelling.
+##age: proportion of owner-occupied units built prior to 1940.
+##dis: weighted mean of distances to five Boston employment centers.
+##rad: index of accessibility to radial highways. tax: full-value property-tax rate per \$10,000. ptratio: pupil-teacher ratio by town.
+##black: 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town.
+##lstat: lower status of the population (percent).
+##medv: median value of owner-occupied homes in \$1000s.
+
+
+```{r}
+directory <- getwd()
+
+boston <- read.csv("Boston.csv", sep = ',')
+
+str(boston)
+
+names(boston)
+```
+
+##2.	Fit a multiple regression model to predict the response variable medv using all other variables. For which variables the corresponding regression coefficients are likely to be significant? (40 points)
+
+```{r}
+## Split the data into train and test set
+# for reproducing results
+set.seed(123) 
+sample.size <- floor(0.75 * nrow(boston))
+train.index <- sample(seq_len(nrow(boston)), size = sample.size)
+train <- boston[train.index, ]
+test <- boston[- train.index, ]
+
+# fit a multiple linear regression model
+multi_lm_fit = lm(medv ~ lstat + age,data = train) 
+summary(multi_lm_fit)
+
+
+```
+
+##3.	On the basis of your response to the previous question, fit a smaller linear regression model that only uses predictors for which there is evidence of association with medv. (10 points)
+
+```{r}
+# fit a simple linear regression model
+
+lm_fit = lm(medv ~ lstat, data = train) 
+summary(lm_fit)
+
+
+```
+##4.	How well the models in 2 and 3 fit the data? (10 points)
+
+#We can see that  in multiple regression model  i.e (2) we are able to establish the relationship between multiple interrelated variables.While  incase of a linear regression model we are able to establish the relationship between two variables.The  first case is most widely used as in real world we have scenarios to find the relationship between multiple values.
+
+
+##5.	Try to reduce the set of predictors by making correlation and scatterplot matrices and fit even a smaller model using the predictors of your choice. (30 points)
+```{r}
+## For Multiple Regression
+
+multi_lm_fit = lm(medv ~ lstat * age, data = boston)
+
+
+## Prediction
+head(predict(multi_lm_fit, test, interval = "confidence"), 5)
+
+head(predict(multi_lm_fit, test, interval = "prediction"), 5)
+
+## Scatter  Plot
+par(mfrow = c(2,2))
+plot(multi_lm_fit)
+
+```
+```{r}
+##For Linear Regression
+
+
+## Prediction 
+
+head(predict(lm_fit, test, interval = "confidence"), 5)
+
+head(predict(lm_fit, test, interval = "prediction"), 5)
+
+## Scatter Plot
+
+par(mfrow = c(2,2))
+plot(lm_fit)
+
+
+
+```
+##6.	Investigate possible interactions between the variables in the last model. Try to find a model with the maximum of R2 value (10 points)
+
+```{r}
+
+##Given a predictor X, we can create predictor X2 using I(X^2).
+
+lm.fit = lm(medv ~ crim + rm + dis + ptratio +  chas + nox + black + lstat + I(lstat ^ 2), data=train)
+summary(lm.fit)
+
+
+```
+

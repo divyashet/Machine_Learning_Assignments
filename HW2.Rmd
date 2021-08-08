@@ -1,0 +1,186 @@
+---
+title: "R HomeWork Assignment 2 "
+output: html_notebook
+---
+## 1.	Download the dataset Auto.csv.
+## 2.	Explore the overall structure of the dataset using str(). Describe it one paragraph here. Copy and paste the commands and execute results in R console here.
+
+
+```{r}
+directory <- getwd()
+
+autofile <- read.csv("Auto.csv", sep = ',')
+
+str(autofile)
+
+
+```
+As per the above structure we have around 9 variables and around 397 observations.
+From the given structure  we can make out that we have variables such has mpg ,cylinder,displacement,horsepower etc. which conatins the information about Auto.
+The horsepower variable has around 94 factor levels and the name variable has around 304 factor levels.
+
+
+## 3.Convert the attribute horsepower from character to integer. Copy and paste the commands and execute results in R console here.
+
+```{r}
+
+as.integer(autofile$horsepower)
+
+
+```
+
+##4.	The horsepower attribute has some missing values. Remove the observations with missing values, i.e., delete the rows with missing values from the data frame. Copy and paste the commands and execute results in R console here. (10 points)
+
+```{r}
+
+directory <- getwd()
+
+autofile2 <- read.csv("Auto.csv", sep = ',')
+
+na.omit(autofile2$horsepower)
+
+
+```
+##.5.	Explore the data in order to investigate the association between mpg and the other features.Which of the other features seem most likely to be useful in predicting mpg (scatterplots may be useful tools to answer this question). Describe your findings using a paragraph. Copy and paste the commands and execute results in R console here. (15 points)
+
+```{r}
+
+library(gcookbook)
+
+library(ggplot2)
+
+#ScatterPlot  
+
+ggplot(autofile, aes(x = mpg, y = acceleration)) +geom_point(color = "blue")
+
+ggplot(autofile, aes(x = mpg, y = displacement)) +geom_point(color = "blue")
+
+ggplot(autofile, aes(x = mpg, y = weight)) +geom_point(color = "blue")
+
+ggplot(autofile, aes(x = mpg, y = horsepower)) +geom_point(color = "blue")
+
+
+#Scatterplot of data variable mpg with other predictors 
+pairs(~mpg+displacement+horsepower+weight+acceleration,data = autofile,col="blue")
+
+
+```
+
+mpg can be plotted against acceleration,displacement and weight with the help of scatter plot.
+
+##6.	Create a new attribute mpg1 that contains 1 if mpg is strictly greater than its median, and 0 if mpg is equal or less than its median. Copy and paste the commands and execute results in R here. (10 points)
+
+```{r}
+
+mpg01<- factor(autofile$mpg)
+
+ifelse(autofile$mpg >median(autofile$mpg),1,0)
+
+autofile3 <-data.frame(autofile,mpg01)
+
+summary(autofile)
+
+
+
+
+```
+##7.	Decide which attributes you are going to use to predict mpg1. Remove all remaining attributes, including mpg. Copy and paste the commands and execute results in R console here. (10 points)
+
+```{r}
+
+# Build the model
+
+model <- lm( autofile$acceleration ~ autofile$mpg01, data = autofile)
+
+model
+
+new.mpg <- data.frame(mpg01)
+
+predict(model, newdata = new.mpg ,interval = "confidence")
+
+
+```
+
+
+##8.Set the seed of the random number generator to a fixed integer, say 1, so that you can reproduce your work: > set.seed(1)
+
+```{r}
+
+
+set.seed(1)
+
+
+```
+
+##9.	Normalize the attribute values. Copy and paste the commands and execute results in R console here. (5 points)
+
+```{r}
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+
+
+df <-data.frame(autofile$acceleration,autofile$weight,autofile$cylinders,autofile$displacement,autofile$year,autofile$mpg)
+
+dfNorm <- as.data.frame(lapply(df, normalize))
+
+dfNorm
+
+
+
+
+```
+
+##10.	Randomize the order of the rows in the dataset. Copy and paste the commands and execute results in R console here. (5 points)
+
+```{r}
+
+randomdata = dfNorm[sample(nrow(dfNorm)),]
+
+randomdata
+
+
+
+```
+
+## 11.	Split the data into a training set and a test set. Use a test set of 100 rows. Copy and paste the commands and execute results in R console here. (5 points)
+
+```{r}
+ATrainData =randomdata[1:250 , ]
+ATestData = randomdata[251:392, ]
+
+ATrainData_label = autofile[1:250 ,5]
+ATestData_label = autofile[251:392 ,5]
+
+
+
+
+```
+##12.	Perform kNN on the training data, with several values of K, in order to predict mpg1. What test errors do you obtain? Which value of K seems to perform the best on this data set? Copy and paste the commands and execute results in R console here. (25 points)
+
+```{r}
+
+library(class)
+
+Adataknn <- knn(train = ATrainData, test = ATestData,cl = ATrainData_label, k = 1)
+
+
+install.packages ("gmodels"); install.packages("MASS")
+library (gmodels); library (MASS)
+
+CrossTable(x = ATestData_label, y = Adataknn, prop.chisq=FALSE)
+
+Adataknn <- knn(train = ATrainData, test = ATestData,cl = ATrainData_label, k = 3)
+Autodataknn <- knn(train = ATrainData, test = ATestData,cl = ATrainData_label, k = 6)
+Autodataknn <- knn(train = ATrainData, test = ATestData,cl = ATrainData_label, k = 9)
+Autodataknn <- knn(train = ATrainData, test = ATestData,cl = ATrainData_label, k = 10)
+
+
+```
+
+
+
+
+
+

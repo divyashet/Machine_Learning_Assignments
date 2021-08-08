@@ -1,0 +1,270 @@
+---
+title: "Exploring Data Analysis with R"
+output: html_notebook
+---
+
+
+##Problem 1--Exploring Vegas Hotel Dataset
+
+###1.Explore the overall structure of the dataset using str().
+
+
+```{r}
+directory <- getwd()
+
+lasvegas <- read.csv("vegashotels.csv", sep = ';')
+
+str(lasvegas)
+
+```
+
+###Use summary to get a summary statistics of each variable. Does any of the variables have missing values?
+
+```{r}
+
+summary(lasvegas)
+
+```
+###Draw a histogram of the score variable. Describe what you see in the histogram.
+
+```{r}
+
+lasvegas <- read.csv("vegashotels.csv", sep = ';')
+
+score <- table(lasvegas$Score)
+
+hist(score)
+
+
+```
+The Histogram is plotted by Score on the x-axis v/s Frequency on the y-axis.We can see no scores in between a00 and 150.The histogram is also skewed to the right and is said to be positively skewed.
+
+
+## Find the mode of "Score"
+
+```{r}
+
+# Create the function.
+getmode <- function(m) {
+   uniqv <- unique(m)
+   uniqv[which.max(tabulate(match(m, uniqv)))]
+}
+
+# Create the vector with numbers.
+m <- lasvegas$Score
+
+# Calculate the mode using the user function.
+ModeofScore <- getmode(m)
+print(ModeofScore)
+```
+
+## Use the "quantile" function to get the quantiles for score. What is the median of score?
+```{r}
+
+q <- quantile(lasvegas$Score)
+print(q)
+
+p <-median(lasvegas$Score)
+print(p)
+
+```
+
+##Use the ifelse function (You can get help on the syntax of this function in R by typing ?ifelse) to create a factor variable "sentiment" which takes the value "positive" if score is 4 or 5 and "negative" otherwise. You can use the method "factor" to create a factor from a character vector.
+
+```{r}
+
+
+
+lasvegas <- read.csv("vegashotels.csv", sep = ';')
+
+ses<- ifelse((lasvegas$Score == 4) | (lasvegas$Score == 5),"Positive","Negative")
+
+ses.f <- factor(ses, levels = c("Positive","Negative"))
+
+is.factor(ses.f)
+
+lasvegas$Sentiment<-ses.f
+
+lasvegas$Sentiment
+
+
+```
+
+##Take a summary of "sentiment" to make sure that the frequencies of "positive" and "negative" categories are consistent with the frequency of the values in Score (e.g., the frequency for the "positive" sentiment should be equal to the combined frequency of 4 and 5 for the Score)
+
+```{r}
+
+lasvegas <- read.csv("vegashotels.csv", sep = ';')
+
+ses<- ifelse((lasvegas$Score == 4) | (lasvegas$Score == 5),"Positive","Negative")
+
+ses.f <- factor(ses, levels = c("Positive","Negative"))
+
+is.factor(ses.f)
+
+lasvegas$Sentiment<-ses.f
+
+summary(lasvegas$Sentiment)
+
+
+summary(lasvegas$Score == 4 |lasvegas$Score == 5)
+
+```
+
+## Use chisquare test to determine if sentiment is associated with any of the variables: "Pool", "Gym","Free.Internet", "Period.of.Stay", "traverler.type"", and "hotel.stars" (Assume the significance level alpha=0.01). Which of these variables are associated with sentiment?
+
+```{r}
+
+lasvegas <- read.csv("vegashotels.csv", sep = ';')
+
+ses<- ifelse((lasvegas$Score == 4) | (lasvegas$Score == 5),"Positive","Negative")
+
+ses.f <- factor(ses, levels = c("Positive","Negative"))
+
+is.factor(ses.f)
+
+ses.f
+
+lasvegas$Sentiment<-ses.f
+
+# Load the library.
+library("MASS")
+
+# Perform the Chi-Square test.
+chisq <- chisq.test(lasvegas$Sentiment,lasvegas$Gym)
+
+
+
+```
+ Sentiment can be associated with $Gym ,$Pool,$Free.Internet as the chi-square test evaluates whether there is a significant association between the categories of the two variables.The chisq.test() functions only works when the length of the two varaiables is same.
+
+#Exploring California Housing Dataset
+
+## Explore the structure of dataset using str function. How many numerical and categorical attributes are there in the dataset.
+
+```{r}
+
+directory <- getwd()
+
+housing <- read.csv("housing.csv", sep = ',')
+
+str(housing)
+
+
+```
+
+##Take a summary statistics of the dataset. Does any of the variables have missing values?
+
+```{r}
+##To  find the Summary of the Dataset
+summary(housing)
+
+## To find the missing values in the dataset
+which(is.na(housing$total_bedrooms))
+
+
+```
+
+
+##Remove the rows with missing values. You can use either "complete.cases" function or "na.omit" function for this purpose. Run ?complete.cases and ?na.omit in R to get help on these functions and to see some examples.
+
+```{r}
+
+na.omit(housing$total_bedrooms)
+
+
+```
+
+##Draw a histogram and boxplot of the median_house_value. What can you say about the shape of median_house_value? Is the median_house_value sample positively skewed, symmetric, or negatively skewed?
+
+```{r}
+
+housing <- read.csv("housing.csv", sep = ',')
+
+median_house_value <- housing$median_house_value
+
+hist(median_house_value)
+
+boxplot(housing$median_house_value, main="Boxplot of median_house_value")
+
+
+
+
+```
+The histogram of median_House_Value is positively skewed.
+
+
+##Use Q-Q plot to examine if the distribution of median_house_value is approximately normal?
+
+```{r}
+
+qqnorm(housing$median_house_value)
+
+
+```
+
+##Use IQR method to find outliers of the median_house_value attribute. How many outliers does this attribute have?
+
+```{r}
+IQR <- IQR(housing$median_house_value)
+IQR
+
+
+```
+##Use "pairs" and "cor" functions to get a scatter plot and correlation matrix of numerical attributes in the dataset. Does any of the numerical attributes have a linear correlation with median_house_value?
+
+```{r}
+
+numeric_attributes = housing[,c("median_income","median_house_value")]
+
+pairs(numeric_attributes)
+
+cor(numeric_attributes)
+
+
+```
+
+The median income is correlated with median_house_value in the housing dataset.
+
+##Is there a significant difference between the mean of median_house_value across different levels of ocean_proximity ? Use side by side box plot and ANOVA (with significance level alpha=0.01) to answer this question. Interpret the side by side box plot, do you see any difference between the mean of the median_house_value for different ocean_proximity levels?
+
+
+```{r}
+
+
+plot(housing$median_house_value ~ housing$ocean_proximity, col="blue")
+
+
+```
+Yes, there are differences between the mean of different ocean proximity levels.The mean of the Island is highest amongst all and the mean of inland is the lowest.
+
+##Use ifelse function to create a new factor variable "Is_Inland" which takes the value "Yes" if the ocean_proximity is "Inland" and No" otherwise.
+
+```{r}
+
+
+housing <- read.csv("housing.csv", sep = ',')
+
+Is_Inland <- ifelse((housing$ocean_proximity == "INLAND"),"Yes","No")
+
+Is_Inland.f <- factor(Is_Inland, levels = c("Yes","No"))
+
+is.factor(Is_Inland.f)
+
+housing$Is_Inland <- Is_Inland.f
+
+housing$Is_Inland
+
+
+```
+
+##Use side by side box plot to visualize the relationship between "Is_Inland" and "median_house_value". Is there a significant difference between the means of median_house_value for Inland and not Inland houses? Use t-test to test your hypothesis for significance level alpha=0.01)
+
+```{r}
+x = rnorm(housing$median_house_value)
+y = rnorm(housing$Is_Inland)
+t.test(x,y)
+
+```
+
+

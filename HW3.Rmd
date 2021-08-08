@@ -1,0 +1,296 @@
+---
+title: "Assignment 3"
+output: html_notebook
+---
+
+##In this homework you will implement and evaluate a Naive Bayes classifier for spam filtering.
+##Download the dataset files hw3_train.zip and hw3_test.zip.  The dataset is divided into two sets: a training set and a test set. Each set has two directories: spam and ham. All files in the spam folders are spam messages and all files in the ham folders are ham (non spam) messages. 
+##1.	Use the training datasets to train a Naive Bayes classifier for text classification. 
+##2.	Test the classifiers performance on the test set. 
+##3.	Build word clouds for the training ham set and for the training spam set and compare them.
+##4.	Write a short report in word format and a R notebook providing 
+##a.	Each step of commands and results for each step; (50 points)
+##b.	a comparison result between the ham and the spam word clouds; (20 points)
+##c.	an evaluation of the performance of the classifier. (30 points)
+
+
+
+
+##3.	Build word clouds for the training ham set and for the training spam set and compare them.
+
+##Step 1:Install the packages required to perform the analyses
+
+```{r}
+
+install.packages("tm")
+library(tm)
+
+install.packages("gmodels")
+library(gmodels)
+
+install.packages("SnowballC")
+library(SnowballC)
+
+install.packages("wordcloud")
+library(wordcloud)
+
+
+
+
+
+
+```
+## Step 2: Load the training and the test data from the working directory
+
+```{r}
+
+library(tm)
+directory <- getwd()
+
+##Load the data from the source (HAM)
+
+
+src_ham <- DirSource(directory = "C:\\Users\\Lenovo\\Documents\\train\\ham", encoding = "UTF-8")
+sms_corpus_train_ham<- VCorpus(src_ham , readerControl = list(language="lat"))
+sms_corpus_train_ham
+
+##Load the data from the source (SPAM)
+
+src_spam <- DirSource(directory = "C:\\Users\\Lenovo\\Documents\\train\\spam", encoding = "UTF-8")
+sms_corpus_train_spam <- VCorpus(src_spam, readerControl = list(language="lat"))
+sms_corpus_train_spam
+
+```
+
+## Step 3: Train Data Cleaning
+
+```{r}
+## HAM  Train Data Preparation
+
+
+# convert to lower case
+sms_corpus_train_ham_clean = tm_map(sms_corpus_train_ham, tolower)                
+# remove digits
+sms_corpus_train_ham_clean = tm_map(sms_corpus_train_ham_clean, removeNumbers)    
+# remove stop words       
+sms_corpus_train_ham_clean = tm_map(sms_corpus_train_ham_clean, removeWords, stopwords())
+# remove punctuation
+sms_corpus_train_ham_clean = tm_map(sms_corpus_train_ham_clean, removePunctuation)
+# stemming       
+sms_corpus_train_ham_clean = tm_map(sms_corpus_train_ham_clean, stemDocument)
+# removes whitespaces       
+sms_corpus_train_ham_clean = tm_map(sms_corpus_train_ham_clean, stripWhitespace)
+
+# Plain Text Document
+sms_corpus_train_ham_clean <- tm_map(sms_corpus_train_ham_clean, PlainTextDocument)
+
+
+
+
+## SPAM  Train Data Preparation
+
+# convert to lower case
+sms_corpus_train_spam_clean = tm_map(sms_corpus_train_spam, tolower)                
+# remove digits
+sms_corpus_train_spam_clean = tm_map(sms_corpus_train_spam_clean, removeNumbers)    
+# remove stopwords       
+sms_corpus_train_spam_clean = tm_map(sms_corpus_train_spam_clean, removeWords, stopwords()) 
+# remove punctuation
+sms_corpus_train_spam_clean = tm_map(sms_corpus_train_spam_clean, removePunctuation)
+# stemming       
+sms_corpus_train_spam_clean = tm_map(sms_corpus_train_spam_clean, stemDocument)
+# removes whitespaces      
+sms_corpus_train_spam_clean = tm_map(sms_corpus_train_spam_clean, stripWhitespace)
+
+#PlainTextDocument
+sms_corpus_train_spam_clean <- tm_map(sms_corpus_train_spam_clean, PlainTextDocument)
+
+
+sms_corpus_train_clean <-c(sms_corpus_train_spam_clean,sms_corpus_train_ham_clean)
+
+sms_corpus_train_clean
+```
+
+
+## Visualising the Text Data
+
+```{r}
+
+
+col1 <- brewer.pal(9,"YlGn")
+col1 <- col1[-(1:4)]
+
+col2 <- brewer.pal(9,"Reds")
+col2 <- col2[-(1:4)]
+
+#min.freq initial settings -> around 10% of the number of docs in the corpus (40 times)
+par(mfrow = c(1,2))
+wordcloud(sms_corpus_train_ham, min.freq = 50, random.order = FALSE, colors = col1)
+wordcloud(sms_corpus_train_spam, min.freq = 50, random.order = FALSE, colors = col2)
+
+
+```
+
+##Prepare the Test Data same as we did for the Train Data
+
+```{r}
+
+library(tm)
+directory <- getwd()
+
+##Load the data from the source (HAM)
+
+
+src_ham1 <- DirSource(directory = "C:\\Users\\Lenovo\\Documents\\test\\ham", encoding = "UTF-8")
+sms_corpus_test_ham<- VCorpus(src_ham1)
+
+
+##Load the data from the source (SPAM)
+
+src_spam1 <- DirSource(directory = "C:\\Users\\Lenovo\\Documents\\test\\spam", encoding = "UTF-8")
+sms_corpus_test_spam <- VCorpus(src_spam1)
+
+
+```
+
+## Test Data Cleaning 
+
+```{r}
+## HAM Test Data Preparation
+
+
+# convert to lower case
+sms_corpus_test_ham_clean = tm_map(sms_corpus_test_ham, tolower)                
+# remove digits
+sms_corpus_test_ham_clean = tm_map(sms_corpus_test_ham_clean, removeNumbers)
+# remove stopwords       
+sms_corpus_test_ham_clean = tm_map(sms_corpus_test_ham_clean, removeWords, stopwords()) 
+# remove punctuation
+sms_corpus_test_ham_clean = tm_map(sms_corpus_test_ham_clean, removePunctuation)
+# stemming       
+sms_corpus_test_ham_clean = tm_map(sms_corpus_test_ham_clean, stemDocument)
+# reduces whitespace       
+sms_corpus_test_ham_clean = tm_map(sms_corpus_test_ham_clean, stripWhitespace)   
+# Plaintext Document
+sms_corpus_test_ham_clean <- tm_map(sms_corpus_test_ham_clean, PlainTextDocument)
+
+
+
+## SPAM  Test Data Preparation
+
+
+# convert to lower case
+sms_corpus_test_spam_clean = tm_map(sms_corpus_test_spam, tolower)                
+# remove digits
+sms_corpus_test_spam_clean = tm_map(sms_corpus_test_spam_clean, removeNumbers)    
+# remove stopwords      
+sms_corpus_test_spam_clean = tm_map(sms_corpus_test_spam_clean, removeWords, stopwords()) 
+# remove punctuation
+sms_corpus_test_spam_clean = tm_map(sms_corpus_test_spam_clean,removePunctuation)
+# stemming       
+sms_corpus_test_spam_clean = tm_map(sms_corpus_test_spam_clean, stemDocument)
+# remove whitespaces      
+sms_corpus_test_spam_clean = tm_map(sms_corpus_test_spam_clean, stripWhitespace) 
+# Plaintext Document
+sms_corpus_test_spam_clean <- tm_map(sms_corpus_test_spam_clean, PlainTextDocument)
+
+sms_corpus_test_clean <- c(sms_corpus_test_spam_clean ,sms_corpus_test_ham_clean)
+
+```
+
+
+## Use the training datasets to train a Naive Bayes classifier for text classification. 
+##.Solution:
+##Create the document term matrix
+```{r}
+train_dtm <- DocumentTermMatrix(sms_corpus_train_clean)
+test_dtm <- DocumentTermMatrix(sms_corpus_test_clean)
+```
+
+
+##Finding the frequent terms in training document term matrix and keeping only those words in training and testing data
+```{r}
+sms_freq_words <- findFreqTerms(train_dtm,5)
+
+train_freq <- DocumentTermMatrix(sms_corpus_train_clean,list(dictionary=sms_freq_words))
+test_freq <- DocumentTermMatrix(sms_corpus_test_clean,list(dictionary=sms_freq_words))
+```
+
+
+##Convert numbers to "yes" and "no"
+```{r}
+convert_counts <- function(x){ x <- ifelse(x>0, "YES", "NO")}
+
+train_data <- apply(train_freq, MARGIN = 2, convert_counts)
+test_data <- apply(test_freq, MARGIN = 2, convert_counts)
+```
+
+
+##Converting training and test DocumentTermMatrix to data frame's
+```{r}
+train_dataframe <- as.data.frame(train_data)
+test_dataframe <- as.data.frame(test_data)
+```
+
+
+##Adding the output variable to the data frame's
+```{r}
+train_type <- rep(c("spam","ham"), times = c(123,340))
+train_dataframe <- cbind(train_dataframe,train_type)
+
+test_type <- rep(c("spam","ham"), times = c(130, 348))
+test_dataframe <- cbind(test_dataframe, test_type)
+```
+
+
+##Shuffle the records in the dataframe
+```{r}
+train_dataframe= train_dataframe[sample(nrow(train_dataframe),replace =FALSE),] 
+test_dataframe= test_dataframe[sample(nrow(test_dataframe),replace =FALSE),] 
+```
+
+
+##Build the training, testing data and training, testing labels
+```{r}
+training_data <- train_dataframe[,1:1419]
+training_label <- train_dataframe[,1420]
+
+testing_data <- test_dataframe[ , 1:1419]
+testing_label <- test_dataframe[ ,1420]
+```
+
+
+##Installing the package "e1071" to run the naive bayes classifier
+```{r}
+#install.packages("e1071")
+library(e1071)
+```
+
+## Building the classifier
+```{r}
+sms_email_classifier <- naiveBayes(training_data, training_label)
+```
+
+
+## Make predictions
+```{r}
+test_predict <- predict(sms_email_classifier, testing_data)
+
+```
+
+
+## Evaluating the model performance
+```{r}
+library(gmodels)
+
+CrossTable(test_predict, testing_label, prop.chisq = FALSE, prop.t = FALSE,
+ dnn = c('predicted', 'actual'))
+
+```
+
+
+
+
+
+ 
+ 
